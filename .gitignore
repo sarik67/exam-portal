@@ -1,0 +1,10 @@
+# .gitignore — files that must NEVER be committed to git
+.env
+flask_session/
+__pycache__/
+*.pyc
+*.pyo
+static/uploads/*
+!static/uploads/.gitkeep
+*.log
+migrate.py

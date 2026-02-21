@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Create Exam — ExamPortal Admin{% endblock %}
+{% block page_id %}admin-create{% endblock %}
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">🎓</div>
+            <div class="sidebar-brand-text">
+                <strong>ExamPortal</strong>
+                <small>Admin Panel</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{{ url_for('create_exam') }}" class="active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                Create Exam
+            </a>
+            <a href="{{ url_for('view_exams') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+                View Exams
+            </a>
+            <a href="{{ url_for('view_results') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Results
+            </a>
+            <div class="nav-divider"></div>
+            <a href="{{ url_for('admin_logout') }}" class="logout">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </a>
+        </nav>
+        <div class="sidebar-footer">Logged in as <strong>{{ session.admin_username or 'Admin' }}</strong></div>
+    </aside>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <span class="topbar-title">Create New Exam</span>
+            <div class="topbar-admin">
+                <div class="admin-avatar">{{ (session.admin_username or 'A')[0].upper() }}</div>
+                <span>{{ session.admin_username or 'Admin' }}</span>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>Create New Exam</h1>
+                <p>Fill in exam details and add questions below.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('create_exam') }}" enctype="multipart/form-data" id="createExamForm"
+                class="form-container">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Exam Details -->
+                <div class="form-section">
+                    <h3><span class="section-num">1</span> Exam Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Exam Title</label>
+                            <input type="text" id="title" name="title" required maxlength="255"
+                                placeholder="e.g. Python Fundamentals Test">
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Duration (minutes)</label>
+                            <input type="number" id="duration" name="duration" required min="1" max="480" value="60">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="exam_password">Exam Password <span
+                                style="color:var(--text-dim); font-weight:400; text-transform:none; font-size:0.8rem;">(students
+                                use this to enter — min 4 chars)</span></label>
+                        <input type="password" id="exam_password" name="exam_password" required minlength="4"
+                            placeholder="Set a secure password for students">
+                    </div>
+                </div>
+
+                <!-- Questions -->
+                <div class="form-section">
+                    <h3><span class="section-num">2</span> Add Questions</h3>
+                    <p class="help-text">Enter quantity and click <strong>Add</strong> to insert multiple questions at
+                        once, or click a type button to add one at a time.</p>
+
+                    <!-- Bulk-add rows -->
+                    <div class="bulk-add-grid">
+                        <div class="bulk-add-row">
+                            <span class="bulk-label mcq-label">MCQ</span>
+                            <input type="number" id="qty_mcq" class="bulk-qty" value="1" min="1" max="50">
+                            <button type="button" class="bulk-add-btn mcq-btn" data-type="mcq">Add MCQ</button>
+                        </div>
+                        <div class="bulk-add-row">
+                            <span class="bulk-label para-label">Paragraph</span>
+                            <input type="number" id="qty_paragraph" class="bulk-qty" value="1" min="1" max="50">
+                            <button type="button" class="bulk-add-btn para-btn" data-type="paragraph">Add
+                                Paragraph</button>
+                        </div>
+                        <div class="bulk-add-row">
+                            <span class="bulk-label img-label">Image</span>
+                            <input type="number" id="qty_image" class="bulk-qty" value="1" min="1" max="50">
+                            <button type="button" class="bulk-add-btn img-btn" data-type="image">Add Image</button>
+                        </div>
+                        <div class="bulk-add-row">
+                            <span class="bulk-label sa-label">Short Answer</span>
+                            <input type="number" id="qty_short_answer" class="bulk-qty" value="1" min="1" max="50">
+                            <button type="button" class="bulk-add-btn sa-btn" data-type="short_answer">Add Short
+                                Answer</button>
+                        </div>
+                    </div>
+
+                    <!-- quick single-add strip -->
+                    <div class="add-question-buttons" style="margin-top:12px;">
+                        <button type="button" class="add-q-btn" data-type="mcq">+ 1 MCQ</button>
+                        <button type="button" class="add-q-btn" data-type="paragraph">+ 1 Paragraph</button>
+                        <button type="button" class="add-q-btn" data-type="image">+ 1 Image</button>
+                        <button type="button" class="add-q-btn" data-type="short_answer">+ 1 Short Answer</button>
+                    </div>
+
+                    <div id="questionsContainer" style="margin-top:18px;"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">✓ Create Exam</button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MCQ_TEMPLATE = (idx) => `
+<div class="question-block" data-index="${idx}">
+    <input type="hidden" name="question_type_${idx}" value="mcq">
+    <div class="question-header">
+        <span class="q-type-label mcq">MCQ — Question ${idx + 1}</span>
+        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Marks</label>
+            <input type="number" name="marks_${idx}" value="1" min="1" max="100">
+        </div>
+        <div class="form-group">
+            <label>Question Text</label>
+            <input type="text" name="question_text_${idx}" placeholder="Enter the question...">
+        </div>
+    </div>
+    <div class="options-group">
+        <label style="display:block; margin-bottom:8px; font-size:0.82rem; color:var(--text-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Options (select correct answer with radio)</label>
+        ${[0, 1, 2, 3].map(j => `
+        <div class="option-row">
+            <input type="radio" name="correct_option_${idx}" value="${j}" id="opt_${idx}_${j}" ${j === 0 ? 'required' : ''}>
+            <input type="text" name="option_${idx}_${j}" placeholder="Option ${j + 1}" ${j < 2 ? 'required' : ''}>
+        </div>
+        `).join('')}
+    </div>
+</div>`;
+
+    const PARAGRAPH_TEMPLATE = (idx) => `
+<div class="question-block" data-index="${idx}">
+    <input type="hidden" name="question_type_${idx}" value="paragraph">
+    <div class="question-header">
+        <span class="q-type-label paragraph">Paragraph — Question ${idx + 1}</span>
+        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Marks</label>
+            <input type="number" name="marks_${idx}" value="1" min="1" max="100">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Paragraph Text <span style="font-weight:400; text-transform:none; font-size:0.8rem; color:var(--text-dim);">(student must type this exactly)</span></label>
+        <textarea name="paragraph_text_${idx}" rows="5" placeholder="Enter the paragraph students must type..." required></textarea>
+    </div>
+</div>`;
+
+    const IMAGE_TEMPLATE = (idx) => `
+<div class="question-block" data-index="${idx}">
+    <input type="hidden" name="question_type_${idx}" value="image">
+    <div class="question-header">
+        <span class="q-type-label image">Image — Question ${idx + 1}</span>
+        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Marks</label>
+            <input type="number" name="marks_${idx}" value="1" min="1" max="100">
+        </div>
+        <div class="form-group">
+            <label>Question Text</label>
+            <input type="text" name="question_text_${idx}" placeholder="Describe what to answer">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Upload Image</label>
+        <input type="file" name="question_image_${idx}" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+    </div>
+    <div class="form-group">
+        <label>Correct Answer <span style="font-weight:400; text-transform:none; font-size:0.8rem; color:var(--text-dim);">(for auto-grading)</span></label>
+        <input type="text" name="correct_answer_${idx}" placeholder="Expected answer">
+    </div>
+</div>`;
+
+    const SHORT_ANSWER_TEMPLATE = (idx) => `
+<div class="question-block" data-index="${idx}">
+    <input type="hidden" name="question_type_${idx}" value="short_answer">
+    <div class="question-header">
+        <span class="q-type-label short_answer">Short Answer — Question ${idx + 1}</span>
+        <button type="button" class="btn btn-danger btn-sm remove-question">Remove</button>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Marks</label>
+            <input type="number" name="marks_${idx}" value="1" min="1" max="100">
+        </div>
+        <div class="form-group">
+            <label>Question (student sees this)</label>
+            <input type="text" name="question_text_${idx}" placeholder="Enter the question" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Correct Answer <span style="font-weight:400; text-transform:none; font-size:0.8rem; color:var(--text-dim);">(case-insensitive match = full marks)</span></label>
+        <input type="text" name="correct_answer_${idx}" placeholder="Expected answer" required>
+    </div>
+</div>`;
+
+    let questionIndex = 0;
+    const container = document.getElementById('questionsContainer');
+
+    function addQuestion(type) {
+        let html;
+        if (type === 'mcq') html = MCQ_TEMPLATE(questionIndex);
+        else if (type === 'paragraph') html = PARAGRAPH_TEMPLATE(questionIndex);
+        else if (type === 'image') html = IMAGE_TEMPLATE(questionIndex);
+        else if (type === 'short_answer') html = SHORT_ANSWER_TEMPLATE(questionIndex);
+        else html = MCQ_TEMPLATE(questionIndex);
+        container.insertAdjacentHTML('beforeend', html);
+        questionIndex++;
+        bindRemoveButtons();
+        // scroll to newly added question
+        container.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function addMultipleQuestions(type, count) {
+        count = Math.max(1, Math.min(50, parseInt(count) || 1));
+        for (let i = 0; i < count; i++) addQuestion(type);
+    }
+
+    function bindRemoveButtons() {
+        container.querySelectorAll('.remove-question').forEach(btn => {
+            btn.onclick = function () { this.closest('.question-block').remove(); };
+        });
+    }
+
+    // Single-add quick buttons
+    document.querySelectorAll('.add-q-btn').forEach(btn => {
+        btn.onclick = () => addQuestion(btn.dataset.type);
+    });
+
+    // Bulk-add buttons
+    document.querySelectorAll('.bulk-add-btn').forEach(btn => {
+        btn.onclick = () => {
+            const type = btn.dataset.type;
+            const qtyMap = { mcq: 'qty_mcq', paragraph: 'qty_paragraph', image: 'qty_image', short_answer: 'qty_short_answer' };
+            const qty = document.getElementById(qtyMap[type])?.value || 1;
+            addMultipleQuestions(type, qty);
+        };
+    });
+
+    addQuestion('mcq'); // start with 1 MCQ by default
+</script>
+{% endblock %}

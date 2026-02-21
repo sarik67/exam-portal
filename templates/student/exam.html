@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{ exam.title }} — ExamPortal{% endblock %}
+{% block page_id %}student-exam{% endblock %}
+{% block content %}
+<div class="exam-wrapper">
+    <!-- Fixed Timer Bar -->
+    <div class="exam-timer-bar">
+        <div class="timer-left">
+            <div class="timer-logo">🎓</div>
+            <span class="exam-title-bar">{{ exam.title }}</span>
+        </div>
+        <div class="timer-display" id="timerDisplay">00:00</div>
+    </div>
+
+    <div class="exam-container">
+        <form id="examForm" method="POST" action="{{ url_for('submit_exam') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="tab_switch_count" id="tabSwitchCount" value="0">
+
+            {% for q in questions %}
+            <div class="question-card" data-type="{{ q.question_type }}">
+                <div class="question-number">
+                    Question {{ loop.index }}
+                    <span class="q-marks-chip">{{ q.marks or 1 }} mark{% if (q.marks or 1) != 1 %}s{% endif %}</span>
+                </div>
+
+                {% if q.question_type == 'mcq' %}
+                <div class="question-text">{{ q.question_text or 'Select the correct answer' }}</div>
+                <div class="options-list">
+                    {% for opt in q.options %}
+                    <label class="option-label">
+                        <input type="radio" name="mcq_{{ q.id }}" value="{{ opt.id }}">
+                        <span>{{ opt.option_text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if q.question_type == 'paragraph' %}
+                <div class="paragraph-display no-select">{{ q.paragraph_text }}</div>
+                <div class="form-group">
+                    <label>Type the paragraph above exactly:</label>
+                    <textarea name="paragraph_{{ q.id }}" rows="8" class="typing-field" required
+                        placeholder="Start typing here..."></textarea>
+                </div>
+                {% endif %}
+
+                {% if q.question_type == 'image' %}
+                {% if q.image_path %}
+                <img src="{{ url_for('static', filename=q.image_path) }}" alt="Question image" class="question-image">
+                {% endif %}
+                <div class="question-text">{{ q.question_text or 'Find the answer in the image and type it below' }}
+                </div>
+                <div class="form-group">
+                    <label>Your answer:</label>
+                    <input type="text" name="image_{{ q.id }}" placeholder="Type your answer here"
+                        style="padding:11px 15px; background:var(--navy); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:inherit; font-size:.95rem; width:100%; outline:none; transition:border-color .2s;"
+                        onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                {% endif %}
+
+                {% if q.question_type == 'short_answer' %}
+                <div class="question-text">{{ q.question_text or 'Enter your answer' }}</div>
+                <div class="form-group">
+                    <label>Your answer:</label>
+                    <input type="text" name="short_answer_{{ q.id }}" placeholder="Type your answer"
+                        style="padding:11px 15px; background:var(--navy); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-family:inherit; font-size:.95rem; width:100%; outline:none; transition:border-color .2s;"
+                        onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="submit-section">
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit Exam →</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ========== ANTI-CHEATING MEASURES ==========
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('paste', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j'].includes(e.key)) e.preventDefault();
+        if (e.key === 'F12') e.preventDefault();
+    });
+
+    let tabSwitchCount = 0;
+    let isSubmitting = false;
+    document.getElementById('examForm').addEventListener('submit', () => { isSubmitting = true; });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && !isSubmitting) {
+            tabSwitchCount++;
+            document.getElementById('tabSwitchCount').value = tabSwitchCount;
+            alert('Tab switch detected (' + tabSwitchCount + 'x). This may be reported. Stay on this tab.');
+        }
+    });
+
+    // Timer
+    const durationMinutes = {{ exam.duration_minutes }};
+    let secondsLeft = durationMinutes * 60;
+    const timerEl = document.getElementById('timerDisplay');
+
+    function formatTime(s) {
+        const m = Math.floor(s / 60), sec = s % 60;
+        return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+    function updateTimer() {
+        timerEl.textContent = formatTime(secondsLeft);
+        if (secondsLeft <= 60) timerEl.classList.add('warning');
+        if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            isSubmitting = true;
+            document.getElementById('examForm').submit();
+        }
+        secondsLeft--;
+    }
+    let timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+</script>
+{% endblock %}

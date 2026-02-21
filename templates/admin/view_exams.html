@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}View Exams — ExamPortal Admin{% endblock %}
+{% block page_id %}admin-exams{% endblock %}
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">🎓</div>
+            <div class="sidebar-brand-text">
+                <strong>ExamPortal</strong>
+                <small>Admin Panel</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{{ url_for('create_exam') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                Create Exam
+            </a>
+            <a href="{{ url_for('view_exams') }}" class="active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+                View Exams
+            </a>
+            <a href="{{ url_for('view_results') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Results
+            </a>
+            <div class="nav-divider"></div>
+            <a href="{{ url_for('admin_logout') }}" class="logout">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </a>
+        </nav>
+        <div class="sidebar-footer">Logged in as <strong>{{ session.admin_username or 'Admin' }}</strong></div>
+    </aside>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <span class="topbar-title">All Exams</span>
+            <div class="topbar-admin">
+                <div class="admin-avatar">{{ (session.admin_username or 'A')[0].upper() }}</div>
+                <span>{{ session.admin_username or 'Admin' }}</span>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>Exam Management</h1>
+                <p>All exams created on this platform.</p>
+            </div>
+
+            <div class="content-card-header"
+                style="margin-bottom:16px; padding:0; display:flex; justify-content:flex-end;">
+                <a href="{{ url_for('create_exam') }}" class="btn btn-primary">+ Create New Exam</a>
+            </div>
+
+            <div class="content-card">
+                {% if exams %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Exam Title</th>
+                            <th>Duration</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in exams %}
+                        <tr>
+                            <td style="color:var(--text-dim); font-size:0.85rem;">{{ exam.id }}</td>
+                            <td style="font-weight:600;">{{ exam.title }}</td>
+                            <td><span class="score-chip mid">{{ exam.duration_minutes }} min</span></td>
+                            <td style="color:var(--text-dim); font-size:0.85rem;">{{ exam.created_at.strftime('%d %b %Y,
+                                %H:%M') if exam.created_at else '-' }}</td>
+                            <td>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <a href="{{ url_for('edit_exam', exam_id=exam.id) }}"
+                                        class="btn btn-secondary btn-sm">✏ Edit</a>
+                                    <form method="POST" action="{{ url_for('delete_exam', exam_id=exam.id) }}"
+                                        class="inline-form"
+                                        onsubmit="return confirm('Delete exam &quot;{{ exam.title }}&quot;? This will remove all questions and student results.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    No exams created yet. <a href="{{ url_for('create_exam') }}">Create your first exam →</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

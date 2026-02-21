@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — ExamPortal{% endblock %}
+{% block page_id %}admin-login{% endblock %}
+{% block content %}
+<div class="login-page">
+    <!-- Left Branding -->
+    <div class="login-branding gold-side">
+        <div class="brand-logo">⚙️</div>
+        <h2>Admin Control Panel</h2>
+        <p>Manage your entire examination platform — create exams, configure questions, and monitor student performance
+            all in one place.</p>
+        <div class="brand-badge">🔐 Admin Access Only</div>
+        <div class="brand-features">
+            <div class="brand-feature"><span class="feat-dot"></span> Create & manage exams with multiple question types
+            </div>
+            <div class="brand-feature"><span class="feat-dot"></span> View ranked student results with scores</div>
+            <div class="brand-feature"><span class="feat-dot"></span> Secure bcrypt password protection</div>
+            <div class="brand-feature"><span class="feat-dot"></span> Rate-limited login to prevent brute force</div>
+        </div>
+    </div>
+
+    <!-- Right Form -->
+    <div class="login-form-side">
+        <div class="login-form-card">
+            <h1>Welcome Back</h1>
+            <p class="sub">Sign in to your admin account</p>
+
+            <form method="POST" action="{{ url_for('admin_login') }}" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username"
+                        placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password"
+                        placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-gold btn-block" style="margin-top:8px;">Login to Dashboard
+                    →</button>
+            </form>
+
+            <a href="{{ url_for('index') }}" class="back-link">← Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

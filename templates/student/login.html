@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Student Login — ExamPortal{% endblock %}
+{% block page_id %}student-login{% endblock %}
+{% block content %}
+<div class="login-page">
+    <!-- Left Branding -->
+    <div class="login-branding teal-side">
+        <div class="brand-logo">📝</div>
+        <h2>Student Exam Portal</h2>
+        <p>Select your exam, enter your details, and get started. Your progress is auto-timed and submitted securely.
+        </p>
+        <div class="brand-badge">🎓 Student Access</div>
+        <div class="brand-features">
+            <div class="brand-feature"><span class="feat-dot"></span> Timed exams with auto-submit</div>
+            <div class="brand-feature"><span class="feat-dot"></span> MCQ, paragraph and short-answer questions</div>
+            <div class="brand-feature"><span class="feat-dot"></span> Instant results after submission</div>
+            <div class="brand-feature"><span class="feat-dot"></span> One attempt per email, per exam</div>
+            {% if exams %}
+            <div class="brand-feature" style="margin-top:8px; flex-direction:column; align-items:flex-start; gap:6px;">
+                <strong style="color:var(--text); font-size:0.8rem; margin-bottom:4px;">Available Exams:</strong>
+                {% for exam in exams %}
+                <span
+                    style="background:var(--teal-glow); color:var(--teal); padding:3px 10px; border-radius:999px; font-size:0.78rem; border:1px solid var(--border-teal);">{{
+                    exam.title }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Form -->
+    <div class="login-form-side">
+        <div class="login-form-card">
+            <h1>Start Your Exam</h1>
+            <p class="sub">Enter your details to begin</p>
+
+            <form method="POST" action="{{ url_for('student_login') }}" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="exam_id">Select Exam</label>
+                    <select id="exam_id" name="exam_id" required>
+                        <option value="">-- Choose your exam --</option>
+                        {% for exam in exams %}
+                        <option value="{{ exam.id }}">{{ exam.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="name">Your Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="exam_password">Exam Password</label>
+                    <input type="password" id="exam_password" name="exam_password" required
+                        placeholder="Provided by your instructor">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Begin Exam →</button>
+            </form>
+
+            <a href="{{ url_for('index') }}" class="back-link">← Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

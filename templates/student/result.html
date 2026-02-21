@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Result — ExamPortal{% endblock %}
+{% block page_id %}student-result{% endblock %}
+{% block content %}
+{% set pct = ((result.total_score or 0) / (result.total_marks or 1) * 100) if result.total_marks else 0 %}
+{% set passed = pct >= 50 %}
+<div class="result-page">
+    <div class="result-card">
+        <div class="result-header {{ 'pass' if passed else 'fail' }}">
+            <div class="score-ring {{ 'pass' if passed else 'fail' }}">
+                <span class="score-num">{{ (result.total_score or 0)|round(0)|int }}</span>
+                <span class="score-den">/ {{ (result.total_marks or 0)|round(0)|int }}</span>
+            </div>
+            <h1>{{ '🎉 Passed!' if passed else '📋 Completed' }}</h1>
+            <p class="exam-name">{{ result.title }}</p>
+        </div>
+
+        <div class="result-body">
+            <div class="result-row">
+                <span class="label">Student</span>
+                <span class="value">{{ result.name }}</span>
+            </div>
+            <div class="result-row">
+                <span class="label">Email</span>
+                <span class="value" style="font-size:0.85rem; color:var(--text-dim);">{{ result.email }}</span>
+            </div>
+            <div class="result-row">
+                <span class="label">MCQ Score</span>
+                <span class="value">{{ result.mcq_score }} / {{ result.mcq_total }}</span>
+            </div>
+            {% if result.typing_accuracy and result.typing_accuracy > 0 %}
+            <div class="result-row">
+                <span class="label">Typing Accuracy</span>
+                <span class="value">{{ "%.1f"|format(result.typing_accuracy or 0) }}%</span>
+            </div>
+            {% endif %}
+            <div class="result-row highlight">
+                <span class="label">Total Score</span>
+                <span class="value">{{ (result.total_score or 0)|round(0)|int }} / {{ (result.total_marks or
+                    0)|round(0)|int }}</span>
+            </div>
+            <div class="result-row">
+                <span class="label">Percentage</span>
+                <span class="value" style="color:{{ 'var(--success)' if passed else 'var(--danger)' }};">{{
+                    "%.1f"|format(pct) }}%</span>
+            </div>
+            <div class="result-row">
+                <span class="label">Submitted</span>
+                <span class="value" style="font-size:0.85rem; color:var(--text-dim);">{{
+                    result.submitted_at.strftime('%d %b %Y, %H:%M') if result.submitted_at else '-' }}</span>
+            </div>
+
+            <div class="result-actions">
+                <a href="{{ url_for('student_login') }}" class="btn btn-primary">Take Another Exam</a>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

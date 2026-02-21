@@ -1,0 +1,13 @@
+# ExamPortal — Python Dependencies
+# Install with: python -m pip install -r requirements.txt
+
+Flask==3.0.0
+Werkzeug==3.0.1
+Jinja2==3.1.6
+itsdangerous==2.2.0
+click==8.3.1
+Flask-Session==0.5.0
+PyMySQL==1.1.0
+bcrypt==4.1.1
+DBUtils==3.1.2
+waitress==3.0.2

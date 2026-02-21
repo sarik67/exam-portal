@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Results — ExamPortal Admin{% endblock %}
+{% block page_id %}admin-results{% endblock %}
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">🎓</div>
+            <div class="sidebar-brand-text">
+                <strong>ExamPortal</strong>
+                <small>Admin Panel</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin_dashboard') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{{ url_for('create_exam') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                Create Exam
+            </a>
+            <a href="{{ url_for('view_exams') }}">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+                View Exams
+            </a>
+            <a href="{{ url_for('view_results') }}" class="active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Results
+            </a>
+            <div class="nav-divider"></div>
+            <a href="{{ url_for('admin_logout') }}" class="logout">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Logout
+            </a>
+        </nav>
+        <div class="sidebar-footer">Logged in as <strong>{{ session.admin_username or 'Admin' }}</strong></div>
+    </aside>
+
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <span class="topbar-title">Student Results</span>
+            <div class="topbar-admin">
+                <div class="admin-avatar">{{ (session.admin_username or 'A')[0].upper() }}</div>
+                <span>{{ session.admin_username or 'Admin' }}</span>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>Exam Results</h1>
+                <p>Students ranked by score — highest first, then alphabetically by name.</p>
+            </div>
+
+            <div class="filter-row">
+                <span class="filter-label">Filter by Exam:</span>
+                <form method="GET" style="display:inline;">
+                    <select name="exam_id" onchange="this.form.submit()">
+                        <option value="">All Exams</option>
+                        {% for exam in exams %}
+                        <option value="{{ exam.id }}" {% if selected_exam==exam.id %}selected{% endif %}>{{ exam.title
+                            }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <div class="content-card">
+                {% if results %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            {% if not selected_exam %}<th>Exam</th>{% endif %}
+                            <th>MCQ Score</th>
+                            <th>Typing Accuracy</th>
+                            <th>Total Score</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in results %}
+                        {% set pct = ((r.total_score or 0) / (r.total_marks or 1) * 100) if r.total_marks else 0 %}
+                        <tr>
+                            <td>
+                                {% if loop.index == 1 %}
+                                <span class="rank-badge gold">🥇</span>
+                                {% elif loop.index == 2 %}
+                                <span class="rank-badge silver">🥈</span>
+                                {% elif loop.index == 3 %}
+                                <span class="rank-badge bronze">🥉</span>
+                                {% else %}
+                                <span class="rank-badge other">#{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight:600;">{{ r.name }}</td>
+                            <td style="color:var(--text-dim); font-size:0.85rem;">{{ r.email }}</td>
+                            {% if not selected_exam %}<td style="font-size:0.85rem;">{{ r.exam_title or '-' }}</td>{%
+                            endif %}
+                            <td>{{ r.mcq_score }}/{{ r.mcq_total }}</td>
+                            <td>{{ "%.1f"|format(r.typing_accuracy or 0) }}%</td>
+                            <td>
+                                {% if pct >= 60 %}
+                                <span class="score-chip high">{{ (r.total_score or 0)|round(0)|int }}{% if r.total_marks
+                                    %}/{{ (r.total_marks or 0)|round(0)|int }}{% endif %}</span>
+                                {% elif pct >= 35 %}
+                                <span class="score-chip mid">{{ (r.total_score or 0)|round(0)|int }}{% if r.total_marks
+                                    %}/{{ (r.total_marks or 0)|round(0)|int }}{% endif %}</span>
+                                {% else %}
+                                <span class="score-chip low">{{ (r.total_score or 0)|round(0)|int }}{% if r.total_marks
+                                    %}/{{ (r.total_marks or 0)|round(0)|int }}{% endif %}</span>
+                                {% endif %}
+                            </td>
+                            <td style="color:var(--text-dim); font-size:0.82rem;">{{ r.submitted_at.strftime('%d %b %Y,
+                                %H:%M') if r.submitted_at else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No results found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
